@@ -132,14 +132,14 @@
              * @param  {Number} percentTime   Percent of time spent on the project (0-100).
              * @param  {Number} extra         Extra costs, e.g. tuition remission
              */
-            var computeStaffCost = function(salary, duration, percentTime, extra){
-                return salary + extra + duration * percentTime / 12;
+            var computeStaffCost = function(salary, duration, percentTime){
+                return salary + duration * percentTime / 12;
             };
 
             var app = angular.module("budgetApp", []);
             app.controller("BudgetCtrl", function($scope){
                 $scope.personnelTypes = [
-                    {name: "Graduate student", salary: 25800},
+                    {name: "Graduate student", salary: 33800}, // Includes tuition remission
                     {name: "Post-doc", salary: 61000},
                     {name: "Scientist", salary: 75000},
                     {name: "Project Manager", salary: 47000}
@@ -170,17 +170,9 @@
 
                 // TODO
                 $scope.computeTotalStaffCosts = function(myType, otherPersonnel){
-                    var myExtra = 0;
-                    if (myType.name==="Graduate student") {
-                        myExtra = 8000; // Tuition remission
-                    };
-                    var total = computeStaffCost(myType.salary, $scope.data.duration, $scope.data.percentTime, myExtra);
+                    var total = computeStaffCost(myType.salary, $scope.data.duration, $scope.data.percentTime);
                     otherPersonnel.forEach(function(each){
-                        var extra = 0;
-                        if (each.name==="Graduate student") {
-                            extra = 8000; // Tuition remission
-                        };
-                        total = total + computeStaffCost(each.salary, $scope.data.duration, $scope.data.percentTime, extra)
+                        total = total + computeStaffCost(each.salary, $scope.data.duration, $scope.data.percentTime)
                     });
                     return total;
                 };
