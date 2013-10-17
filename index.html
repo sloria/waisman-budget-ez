@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.1.5/angular.min.js"></script>
+    </head>
+    <body ng-app="budgetApp">
+        <!--[if lt IE 7]>
+            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+        <div class="container">
+            <h1 class="page-header">Budget EZ</h1>
+            <div ng-controller="BudgetCtrl">
+                <div class="form-group">
+                    <label for="duration">Estimated duration of study (months)</label>
+                    <input class="form-control" name="duration" type="number" ng-model="data.duration" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="nSubjects">Number of subjects</label>
+                    <input class="form-control" name="nSubjects" type="number" ng-model="data.nSubjects" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="hours">Hours of participation/participant</label>
+                    <input type="number" class="form-control" ng-model="data.participantHours" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="personnelType">I am a</label>
+                    <select ng-model="data.personnelType" class="form-control">
+                        <option ng-repeat="pType in personnelTypes">
+                            {{pType.name}}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="percentTime">Percent time (0-100)</label>
+                    <input type="number" class="form-control" ng-model="data.percentTime" min="0" max="100" required>
+                </div>
+
+                <!-- TODO: Add other personnel -->
+
+                <div class="panel panel-primary">
+                    <div class="panel-heading">Results</div>
+                    <div class="panel-body">
+                        <p>
+                            Staff Costs:
+                            <strong>{{computeStaffCosts(data.personnelType) | currency}}</strong>
+                        </p>
+                        <p>
+                            Other Costs:
+                            <strong>{{computeOtherCosts(data.nSubjects, data.participantHours) | currency}}</strong>
+                        </p>
+                        <p>
+                            TOTAL:
+                            <strong>{{computeStaffCosts(data.personnelType) +
+                                        computeOtherCosts(data.nSubjects, data.participantHours) | currency }}</strong>
+                        </p>
+                    </div>
+                </div>
+
+            </div><!-- end controller -->
+        </div><!--end container -->
+
+        <script>
+            /* Constants */
+            var HOURLY_SCAN_COST = 475; // Cost per hour of scan time
+            var HOURLY_PAYMENT = 25; // Payment/hr to subject for MRI and Psychophys
+            var BEHAVIORAL_HOURLY_PAYMENT = 15; // Payment/hr for Behavioral tasks
+            var RADIOLOGY_READ_COST = 50; // Radiology read cost
+            var MRI_SUPPLIES_COST = 1; // Cost of supplies per subject
+            var PSYCHOPHYS_SUPPLIES_COST = 5;
+            var BEHAVIORAL_SUPPLIES_COST = 1;
+            var ROOM_COST = 100; // Room cost/hr
+            var CONTINGENCY_FACTOR = 1.05;
+
+            /** Trim whitespace from a string. */
+            var trim = function(str) {
+                return str.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+            };
+
+            /**
+             * Return the MRI costs given the number of subjects and hours spent
+             * per subject.
+             */
+            var mriCost = function(nSubjects, hoursPerSubject) {
+                return (HOURLY_SCAN_COST * hoursPerSubject +
+                        HOURLY_PAYMENT * hoursPerSubject) * nSubjects +
+                        RADIOLOGY_READ_COST * nSubjects +
+                        MRI_SUPPLIES_COST * nSubjects;
+
+            };
+
+            /**
+             * Return the Psychophys costs given the number of subjects and
+             * hours spent per subject.
+             */
+            var psychophysCost = function(nSubjects, hoursPerSubject) {
+                return nSubjects * (ROOM_COST * hoursPerSubject +
+                                    HOURLY_PAYMENT * hoursPerSubject) +
+                        PSYCHOPHYS_SUPPLIES_COST * nSubjects;
+
+            };
+
+            /**
+             * Return the behavioral task costs given the number of subjects
+             * and hours spent per subject.
+             */
+            var behavioralCost = function(nSubjects, hoursPerSubject) {
+                return nSubjects * (BEHAVIORAL_SUPPLIES_COST +
+                                    BEHAVIORAL_HOURLY_PAYMENT * hoursPerSubject);
+            };
+
+            var app = angular.module("budgetApp", []);
+
+            app.controller("BudgetCtrl", function($scope){
+                $scope.data = {
+                    duration: 0,
+                    nSubjects: 0,
+                    participantHours: 0,
+                    percentTime: 0
+                };
+                // pType => salary
+                // TODO: add fringe, etc.
+                $scope.personnelTypes = [
+                    {name: "Grad", salary: 25800},
+                    {name: "Post-doc", salary: 61000},
+                    {name: "Scientist", salary: 75000},
+                    {name: "Project Manager", salary: 47000}
+                ];
+
+                $scope.computeStaffCosts = function(personnelType){
+                    if (personnelType) {
+                        var pType = $scope.personnelTypes.filter(function(element){
+                            return trim(element.name) === trim(personnelType);
+                        })[0];
+                        return pType.salary
+                    } else{
+                        return 0;
+                    }
+                };
+
+                $scope.computeOtherCosts = function(nSubjects, hoursPerSubject) {
+                    return (mriCost(nSubjects, hoursPerSubject) +
+                            psychophysCost(nSubjects, hoursPerSubject) +
+                            behavioralCost(nSubjects, hoursPerSubject))
+                            * CONTINGENCY_FACTOR;
+                };
+
+            });
+        </script>
+
+    </body>
+</html>
