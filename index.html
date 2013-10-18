@@ -58,7 +58,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="percentTime">Percent time (0-100)</label>
-                                <input type="number" class="form-control" ng-model="form.myType.percentTime" min="0" max="100" required>
+                                <input type="number" class="form-control" ng-model="form.myPercentTime" min="0" max="100" required>
                             </div>
                         </div>
 
@@ -73,21 +73,19 @@
                                 </div>
                             </div>
 
-
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="person{{$index + 2}}">Person {{$index + 2}} (Percent Time)</label>
                                     <div class="input-group">
-                                        <input type="number" class="form-control" ng-model="additionalPersonnel[$index].percentTime" min="0" max="100" required>
+                                        <input type="number" class="form-control" ng-model="additionalPersonnelPT[$index]" min="0" max="100" required>
                                         <span class="input-group-btn">
-                                            <button ng-click="additionalPersonnel.splice($index, 1)" class="btn btn-default"><i class="glyphicon glyphicon-remove"></i></button>
+                                            <button ng-click="removePerson($index)" class="btn btn-default">&times;</button>
                                         </span>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
-                        <button class="btn btn-default" ng-click='addPerson()'><i class="glyphicon glyphicon-plus"></i>Add person</button>
+                        <button class="btn btn-default" ng-click='addPerson()'>Add person</button>
                         <button class="btn btn-danger pull-right" ng-click="reset()">Reset</button>
                      </div><!-- end col-md-->
 
@@ -157,7 +155,6 @@
                 return nSubjects * (ROOM_COST * hoursPerSubject +
                                     HOURLY_PAYMENT * hoursPerSubject) +
                         PSYCHOPHYS_SUPPLIES_COST * nSubjects;
-
             };
 
             /**
@@ -183,10 +180,10 @@
             var app = angular.module("budgetApp", []);
             app.controller("BudgetCtrl", function($scope){
                 personnelTypes = [
-                    {type: "Graduate student", salary: 33800, percentTime: 0}, // Includes tuition remission
-                    {type: "Post-doc", salary: 61000, percentTime: 0},
-                    {type: "Scientist", salary: 75000, percentTime: 0},
-                    {type: "Project Manager", salary: 47000, percentTime: 0}
+                    {type: "Graduate student", salary: 33800}, // Includes tuition remission
+                    {type: "Post-doc", salary: 61000},
+                    {type: "Scientist", salary: 75000},
+                    {type: "Project Manager", salary: 47000}
                 ];
                 $scope.personnelTypes = personnelTypes.slice(0); // Copy the array and bind to scope
                 // Initial values
@@ -194,33 +191,43 @@
                     duration: 0,
                     nSubjects: 0,
                     participantHours: 0,
+                    myPercentTime: 0,
                     myType: personnelTypes[0]
                 };
+                $scope.additionalPersonnel = []; // Array of {type: String, salary: Number}
+                $scope.additionalPersonnelPT = [];  // Array of Numbers, the percent times for each addtl personnel
 
-                $scope.additionalPersonnel = [];
-
+                /** Add a person */
                 $scope.addPerson = function() {
                     $scope.additionalPersonnel.push(personnelTypes[0]);
+                    $scope.additionalPersonnelPT.push(0);
                 }
 
-                // Reset all the form data
+                /** Remove a person at index. */
+                $scope.removePerson = function(index) {
+                    $scope.additionalPersonnel.splice(index, 1);
+                    $scope.additionalPersonnelPT.splice(index, 1);
+                }
+
+                /** Reset all the form data */
                 $scope.reset = function(){
                     $scope.form = {
                         duration: 0,
                         nSubjects: 0,
                         participantHours: 0,
-                        percentTime: 0,
+                        myPercentTime: 0,
                         myType: personnelTypes[0]
                     };
                     // Clear personnel
                     $scope.additionalPersonnel = [];
+                    $scope.additionalPersonnelPT = [];
                 }
 
                 /* Compute all staff costs, including additional personnel */
                 $scope.computeTotalStaffCosts = function(myType, otherPersonnel){
-                    var total = computeStaffCost(myType.salary, $scope.form.duration, $scope.form.myType.percentTime);
-                    otherPersonnel.forEach(function(each){
-                        total = total + computeStaffCost(each.salary, $scope.form.duration, each.percentTime);
+                    var total = computeStaffCost(myType.salary, $scope.form.duration, $scope.form.myPercentTime);
+                    otherPersonnel.forEach(function(each, i){
+                        total = total + computeStaffCost(each.salary, $scope.form.duration, $scope.additionalPersonnelPT[i]);
                     });
                     return total;
                 };
