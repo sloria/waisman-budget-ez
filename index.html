@@ -87,7 +87,7 @@
                             </div>
 
                         </div>
-                        <button class="btn btn-default" ng-click='additionalPersonnel.push({type: "Graduate student", salary: 33800, percentTime: 0})'><i class="glyphicon glyphicon-plus"></i>Add person</button>
+                        <button class="btn btn-default" ng-click='addPerson()'><i class="glyphicon glyphicon-plus"></i>Add person</button>
                         <button class="btn btn-danger pull-right" ng-click="reset()">Reset</button>
                      </div><!-- end col-md-->
 
@@ -182,21 +182,26 @@
 
             var app = angular.module("budgetApp", []);
             app.controller("BudgetCtrl", function($scope){
-                $scope.personnelTypes = [
+                personnelTypes = [
                     {type: "Graduate student", salary: 33800, percentTime: 0}, // Includes tuition remission
                     {type: "Post-doc", salary: 61000, percentTime: 0},
                     {type: "Scientist", salary: 75000, percentTime: 0},
                     {type: "Project Manager", salary: 47000, percentTime: 0}
                 ];
+                $scope.personnelTypes = personnelTypes.slice(0); // Copy the array and bind to scope
                 // Initial values
                 $scope.form = {
                     duration: 0,
                     nSubjects: 0,
                     participantHours: 0,
-                    myType: {type: "Graduate student", salary: 33800, percentTime: 0}
+                    myType: personnelTypes[0]
                 };
 
                 $scope.additionalPersonnel = [];
+
+                $scope.addPerson = function() {
+                    $scope.additionalPersonnel.push(personnelTypes[0]);
+                }
 
                 // Reset all the form data
                 $scope.reset = function(){
@@ -205,7 +210,7 @@
                         nSubjects: 0,
                         participantHours: 0,
                         percentTime: 0,
-                        myType: {type: "Graduate student", salary: 33800, percentTime: 0}
+                        myType: personnelTypes[0]
                     };
                     // Clear personnel
                     $scope.additionalPersonnel = [];
