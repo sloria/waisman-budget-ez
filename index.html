@@ -46,31 +46,48 @@
                             <input type="number" class="form-control" ng-model="form.participantHours" required>
                         </div>
 
-                        <div class="form-group">
-                            <label for="personnelType">I am a</label>
-                            <select name="personnelType" ng-model="form.myType" class="form-control"
-                                    ng-options="pType.type for pType in personnelTypes">
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="percentTime">Percent time (0-100)</label>
-                            <input type="number" class="form-control" ng-model="form.percentTime" min="0" max="100" required>
-                        </div>
-
-                        <div class="form-group" ng-repeat="person in additionalPersonnel track by $index">
-                            <label for="person{{$index + 2}}">Person {{$index + 2}}</label>
-                            <div class="input-group">
-                                <select name="person{{$index+ 2}}"
-                                        ng-model="additionalPersonnel[$index]" class="form-control"
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="personnelType">I am a</label>
+                                <select name="personnelType" ng-model="form.myType" class="form-control"
                                         ng-options="pType.type for pType in personnelTypes">
                                 </select>
-                                <span class="input-group-btn">
-                                    <button ng-click="additionalPersonnel.splice($index, 1)" class="btn btn-warning">&times;</button>
-                                </span>
                             </div>
                         </div>
-                        <button class="btn btn-default" ng-click='additionalPersonnel.push(personnelTypes[0])'>Add person</button>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="percentTime">Percent time (0-100)</label>
+                                <input type="number" class="form-control" ng-model="form.myType.percentTime" min="0" max="100" required>
+                            </div>
+                        </div>
+
+                        <div ng-repeat="person in additionalPersonnel track by $index">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="person{{$index + 2}}-type">Person {{$index + 2}} (Type)</label>
+                                        <select name="person{{$index+ 2}}-type"
+                                                ng-model="additionalPersonnel[$index]" class="form-control"
+                                                ng-options="pType.type for pType in personnelTypes">
+                                        </select>
+                                </div>
+                            </div>
+
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="person{{$index + 2}}">Person {{$index + 2}} (Percent Time)</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" ng-model="additionalPersonnel[$index].percentTime" min="0" max="100" required>
+                                        <span class="input-group-btn">
+                                            <button ng-click="additionalPersonnel.splice($index, 1)" class="btn btn-default"><i class="glyphicon glyphicon-remove"></i></button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <button class="btn btn-default" ng-click='additionalPersonnel.push({type: "Graduate student", salary: 33800, percentTime: 0})'><i class="glyphicon glyphicon-plus"></i>Add person</button>
                         <button class="btn btn-danger pull-right" ng-click="reset()">Reset</button>
                      </div><!-- end col-md-->
 
@@ -166,18 +183,17 @@
             var app = angular.module("budgetApp", []);
             app.controller("BudgetCtrl", function($scope){
                 $scope.personnelTypes = [
-                    {type: "Graduate student", salary: 33800}, // Includes tuition remission
-                    {type: "Post-doc", salary: 61000},
-                    {type: "Scientist", salary: 75000},
-                    {type: "Project Manager", salary: 47000}
+                    {type: "Graduate student", salary: 33800, percentTime: 0}, // Includes tuition remission
+                    {type: "Post-doc", salary: 61000, percentTime: 0},
+                    {type: "Scientist", salary: 75000, percentTime: 0},
+                    {type: "Project Manager", salary: 47000, percentTime: 0}
                 ];
                 // Initial values
                 $scope.form = {
                     duration: 0,
                     nSubjects: 0,
                     participantHours: 0,
-                    percentTime: 0,
-                    myType: $scope.personnelTypes[0]
+                    myType: {type: "Graduate student", salary: 33800, percentTime: 0}
                 };
 
                 $scope.additionalPersonnel = [];
@@ -189,7 +205,7 @@
                         nSubjects: 0,
                         participantHours: 0,
                         percentTime: 0,
-                        myType: $scope.personnelTypes[0]
+                        myType: {type: "Graduate student", salary: 33800, percentTime: 0}
                     };
                     // Clear personnel
                     $scope.additionalPersonnel = [];
@@ -197,9 +213,9 @@
 
                 /* Compute all staff costs, including additional personnel */
                 $scope.computeTotalStaffCosts = function(myType, otherPersonnel){
-                    var total = computeStaffCost(myType.salary, $scope.form.duration, $scope.form.percentTime);
+                    var total = computeStaffCost(myType.salary, $scope.form.duration, $scope.form.myType.percentTime);
                     otherPersonnel.forEach(function(each){
-                        total = total + computeStaffCost(each.salary, $scope.form.duration, $scope.form.percentTime)
+                        total = total + computeStaffCost(each.salary, $scope.form.duration, each.percentTime);
                     });
                     return total;
                 };
