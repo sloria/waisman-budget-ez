@@ -9,13 +9,22 @@
         <title>Budget EZ - Waisman Laboratory for Brain Imaging and Behavior</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+            body {
+              padding-top: 40px;
+              padding-bottom: 40px;
+              background-color: #eee;
+            }
+
+            .content {background-color: white;}
+        </style>
         <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.1.5/angular.min.js"></script>
     </head>
     <body ng-app="budgetApp">
         <!--[if lt IE 7]>
             <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
-        <div class="container">
+        <div class="container content">
             <h1 class="page-header">Budget EZ</h1>
             <div class="row">
                 <div ng-controller="BudgetCtrl">
@@ -48,9 +57,20 @@
                             <label for="percentTime">Percent time (0-100)</label>
                             <input type="number" class="form-control" ng-model="data.percentTime" min="0" max="100" required>
                         </div>
-                        <button class="btn btn-default pull-right" ng-click="reset()">Reset</button>
 
-                    <!-- TODO: Add other personnel -->
+                        <div class="form-group" ng-repeat="person in additionalPersonnel track by $index">
+                            <div class="input-group">
+                                <select
+                                        ng-model="additionalPersonnel[$index]" class="form-control"
+                                        ng-options="pType.name for pType in personnelTypes">
+                                </select>
+                                <span class="input-group-btn">
+                                    <button ng-click="additionalPersonnel.splice($index, 1)" class="btn btn-warning">&times;</button>
+                                </span>
+                            </div>
+                        </div>
+                        <button class="btn btn-default" ng-click='additionalPersonnel.push(personnelTypes[0])'>Add person</button>
+                        <button class="btn btn-danger pull-right" ng-click="reset()">Reset</button>
                      </div><!-- end col-md-->
 
                     <div class="col-md-6">
@@ -59,7 +79,7 @@
                             <div class="panel-body">
                                 <p>
                                     Staff Costs:
-                                    <strong>{{computeTotalStaffCosts(data.myType, []) | currency}}</strong>
+                                    <strong>{{computeTotalStaffCosts(data.myType, additionalPersonnel) | currency}}</strong>
                                 </p>
                                 <p>
                                     Other Costs:
@@ -67,7 +87,7 @@
                                 </p>
                                 <p>
                                     TOTAL:
-                                    <strong class="text-success">{{computeTotalStaffCosts(data.myType, []) +
+                                    <strong class="text-success">{{computeTotalStaffCosts(data.myType, additionalPersonnel) +
                                                 computeOtherCosts(data.nSubjects, data.participantHours) | currency }}</strong>
                                 </p>
                             </div>
@@ -82,7 +102,9 @@
         <script>
             (function() {
 
-            /* Constants */
+            ///////////////
+            // Constants //
+            ///////////////
             var HOURLY_SCAN_COST = 475; // Cost per hour of scan time
             var HOURLY_PAYMENT = 25; // Payment/hr to subject for MRI and Psychophys
             var BEHAVIORAL_HOURLY_PAYMENT = 15; // Payment/hr for Behavioral tasks
@@ -92,6 +114,10 @@
             var BEHAVIORAL_SUPPLIES_COST = 1;
             var ROOM_COST = 100; // Room cost/hr
             var CONTINGENCY_FACTOR = 1.05;
+
+            /////////////////////
+            // Utility methods //
+            /////////////////////
 
             /**
              * Return the MRI costs given the number of subjects and hours spent
@@ -127,14 +153,14 @@
 
             /**
              * Return the cost for a single staff member
-             * @param  {Number} salary        FTE salary
-             * @param  {Number} duration      Number of months spent on the project
-             * @param  {Number} percentTime   Percent of time spent on the project (0-100).
-             * @param  {Number} extra         Extra costs, e.g. tuition remission
              */
             var computeStaffCost = function(salary, duration, percentTime){
                 return salary + duration * percentTime / 12;
             };
+
+            /////////////
+            // The App //
+            /////////////
 
             var app = angular.module("budgetApp", []);
             app.controller("BudgetCtrl", function($scope){
@@ -152,10 +178,8 @@
                     percentTime: 0,
                     myType: $scope.personnelTypes[0]
                 };
-                // An array of objects like {name: "Post-doc", salary: 61000}
-                $scope.personnel = [
-                    $scope.data.myType
-                ];
+
+                $scope.additionalPersonnel = [];
 
                 // Reset all the form data
                 $scope.reset = function(){
@@ -166,9 +190,11 @@
                         percentTime: 0,
                         myType: $scope.personnelTypes[0]
                     };
+                    // Clear personnel
+                    $scope.additionalPersonnel = [];
                 }
 
-                // TODO
+                /* Compute all staff costs, including additional personnel */
                 $scope.computeTotalStaffCosts = function(myType, otherPersonnel){
                     var total = computeStaffCost(myType.salary, $scope.data.duration, $scope.data.percentTime);
                     otherPersonnel.forEach(function(each){
@@ -177,6 +203,7 @@
                     return total;
                 };
 
+                /* Compute costs of MRI, behavioral, and psychophys experiments. */
                 $scope.computeOtherCosts = function(nSubjects, hoursPerSubject) {
                     return (mriCost(nSubjects, hoursPerSubject) +
                             psychophysCost(nSubjects, hoursPerSubject) +
