@@ -33,29 +33,29 @@
 
                         <div class="form-group">
                             <label for="duration">Estimated duration of study (months)</label>
-                            <input class="form-control" name="duration" type="number" ng-model="data.duration" required>
+                            <input class="form-control" name="duration" type="number" ng-model="form.duration" required>
                         </div>
 
                         <div class="form-group">
                             <label for="nSubjects">Number of subjects</label>
-                            <input class="form-control" name="nSubjects" type="number" ng-model="data.nSubjects" required>
+                            <input class="form-control" name="nSubjects" type="number" ng-model="form.nSubjects" required>
                         </div>
 
                         <div class="form-group">
                             <label for="hours">Hours of participation/participant</label>
-                            <input type="number" class="form-control" ng-model="data.participantHours" required>
+                            <input type="number" class="form-control" ng-model="form.participantHours" required>
                         </div>
 
                         <div class="form-group">
                             <label for="personnelType">I am a</label>
-                            <select name="personnelType" ng-model="data.myType" class="form-control"
-                                    ng-options="pType.name for pType in personnelTypes">
+                            <select name="personnelType" ng-model="form.myType" class="form-control"
+                                    ng-options="pType.type for pType in personnelTypes">
                             </select>
                         </div>
 
                         <div class="form-group">
                             <label for="percentTime">Percent time (0-100)</label>
-                            <input type="number" class="form-control" ng-model="data.percentTime" min="0" max="100" required>
+                            <input type="number" class="form-control" ng-model="form.percentTime" min="0" max="100" required>
                         </div>
 
                         <div class="form-group" ng-repeat="person in additionalPersonnel track by $index">
@@ -63,7 +63,7 @@
                             <div class="input-group">
                                 <select name="person{{$index+ 2}}"
                                         ng-model="additionalPersonnel[$index]" class="form-control"
-                                        ng-options="pType.name for pType in personnelTypes">
+                                        ng-options="pType.type for pType in personnelTypes">
                                 </select>
                                 <span class="input-group-btn">
                                     <button ng-click="additionalPersonnel.splice($index, 1)" class="btn btn-warning">&times;</button>
@@ -80,16 +80,16 @@
                             <div class="panel-body">
                                 <p>
                                     Staff Costs:
-                                    <strong>{{computeTotalStaffCosts(data.myType, additionalPersonnel) | currency}}</strong>
+                                    <strong>{{computeTotalStaffCosts(form.myType, additionalPersonnel) | currency}}</strong>
                                 </p>
                                 <p>
                                     Other Costs:
-                                    <strong>{{computeOtherCosts(data.nSubjects, data.participantHours) | currency}}</strong>
+                                    <strong>{{computeOtherCosts(form.nSubjects, form.participantHours) | currency}}</strong>
                                 </p>
                                 <p>
                                     TOTAL:
-                                    <strong class="text-success">{{computeTotalStaffCosts(data.myType, additionalPersonnel) +
-                                                computeOtherCosts(data.nSubjects, data.participantHours) | currency }}</strong>
+                                    <strong class="text-success">{{computeTotalStaffCosts(form.myType, additionalPersonnel) +
+                                                computeOtherCosts(form.nSubjects, form.participantHours) | currency }}</strong>
                                 </p>
                             </div>
                         </div>
@@ -166,13 +166,13 @@
             var app = angular.module("budgetApp", []);
             app.controller("BudgetCtrl", function($scope){
                 $scope.personnelTypes = [
-                    {name: "Graduate student", salary: 33800}, // Includes tuition remission
-                    {name: "Post-doc", salary: 61000},
-                    {name: "Scientist", salary: 75000},
-                    {name: "Project Manager", salary: 47000}
+                    {type: "Graduate student", salary: 33800}, // Includes tuition remission
+                    {type: "Post-doc", salary: 61000},
+                    {type: "Scientist", salary: 75000},
+                    {type: "Project Manager", salary: 47000}
                 ];
                 // Initial values
-                $scope.data = {
+                $scope.form = {
                     duration: 0,
                     nSubjects: 0,
                     participantHours: 0,
@@ -184,7 +184,7 @@
 
                 // Reset all the form data
                 $scope.reset = function(){
-                    $scope.data = {
+                    $scope.form = {
                         duration: 0,
                         nSubjects: 0,
                         participantHours: 0,
@@ -197,9 +197,9 @@
 
                 /* Compute all staff costs, including additional personnel */
                 $scope.computeTotalStaffCosts = function(myType, otherPersonnel){
-                    var total = computeStaffCost(myType.salary, $scope.data.duration, $scope.data.percentTime);
+                    var total = computeStaffCost(myType.salary, $scope.form.duration, $scope.form.percentTime);
                     otherPersonnel.forEach(function(each){
-                        total = total + computeStaffCost(each.salary, $scope.data.duration, $scope.data.percentTime)
+                        total = total + computeStaffCost(each.salary, $scope.form.duration, $scope.form.percentTime)
                     });
                     return total;
                 };
