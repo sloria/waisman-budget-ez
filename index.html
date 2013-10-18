@@ -16,6 +16,11 @@
               background-color: #eee;
             }
 
+            .ng-invalid{
+                border-color: #b94a48;
+                -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
+                box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
+            }
             .content {background-color: white;}
         </style>
         <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.1.5/angular.min.js"></script>
@@ -30,38 +35,39 @@
                 <div ng-controller="BudgetCtrl">
 
                     <div class="col-md-6">
-
-                        <div class="form-group">
-                            <label for="duration">Estimated duration of study (months)</label>
-                            <input class="form-control" name="duration" type="number" ng-model="form.duration" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="nSubjects">Number of subjects</label>
-                            <input class="form-control" name="nSubjects" type="number" ng-model="form.nSubjects" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="hours">Hours of participation/participant</label>
-                            <input type="number" class="form-control" ng-model="form.participantHours" required>
-                        </div>
-
-                        <div class="col-md-6">
+                        <form name="studyForm">
                             <div class="form-group">
-                                <label for="personnelType">I am a</label>
-                                <select name="personnelType" ng-model="form.myType" class="form-control"
-                                        ng-options="pType.type for pType in personnelTypes">
-                                </select>
+                                <label for="duration">Estimated duration of study (months)</label>
+                                <input class="form-control" name="duration" type="number" min="0" ng-model="form.duration" required>
                             </div>
-                        </div>
 
-                        <div class="col-md-6">
                             <div class="form-group">
-                                <label for="percentTime">Percent time (0-100)</label>
-                                <input type="number" class="form-control" ng-model="form.myPercentTime" min="0" max="100" required>
+                                <label for="nSubjects">Number of subjects</label>
+                                <input class="form-control" name="nSubjects" min="0" type="number" ng-model="form.nSubjects" required>
                             </div>
-                        </div>
 
+                            <div class="form-group">
+                                <label for="hours">Hours of participation/participant</label>
+                                <input type="number" class="form-control" ng-model="form.participantHours" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="personnelType">I am a</label>
+                                    <select name="personnelType" ng-model="form.myType" class="form-control"
+                                            ng-options="pType.type for pType in personnelTypes">
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group" ng-class='{"has-error": studyForm.percent.$error.min || studyForm.percent.$error.max}'>
+                                    <label for="percentTime">Percent time (0-100)</label>
+                                    <input type="number" name="percent" class="form-control" ng-model="form.myPercentTime" min="0" max="100" required>
+                                    <span class="help-block error" ng-show="studyForm.percent.$error.min || studyForm.percent.$error.max">
+                                                    The value must be in range 0 to 100</span>
+                                </div>
+                            </div>
                         <div ng-repeat="person in additionalPersonnel track by $index">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -74,19 +80,25 @@
                             </div>
 
                             <div class="col-md-6">
-                                <div class="form-group">
+                                <div class="form-group"
+                                    ng-class='{"has-error": studyForm.percent{{$index + 2}}.$error.min || studyForm.percent{{$index + 2}}.$error.max}'>
                                     <label for="person{{$index + 2}}">Person {{$index + 2}} (Percent Time)</label>
                                     <div class="input-group">
-                                        <input type="number" class="form-control" ng-model="additionalPersonnelPT[$index]" min="0" max="100" required>
+                                        <input name="percent{{$index + 2}}"
+                                                type="number" class="form-control"
+                                                ng-model="additionalPersonnelPT[$index]" min="0" max="100" required>
                                         <span class="input-group-btn">
                                             <button ng-click="removePerson($index)" class="btn btn-default">&times;</button>
                                         </span>
                                     </div>
+                                    <span class="help-block error" ng-show="studyForm.percent{{$index + 2}}.$error.min || studyForm.percent{{$index + 2}}.$error.max">
+                                                    The value must be in range 0 to 100</span>
                                 </div>
                             </div>
                         </div>
+                        </form>
                         <button class="btn btn-default" ng-click='addPerson()'>Add person</button>
-                        <button class="btn btn-danger pull-right" ng-click="reset()">Reset</button>
+                        <a data-target="" href="#" class="pull-right" ng-click="reset()">Reset</a>
                      </div><!-- end col-md-->
 
                     <div class="col-md-6">
