@@ -179,7 +179,7 @@
              * Return the cost for a single staff member
              */
             var computeStaffCost = function(salary, duration, percentTime){
-                return salary * duration * percentTime / 12;
+                return salary * duration * (percentTime / 100) / 12;
             };
 
             /////////////
