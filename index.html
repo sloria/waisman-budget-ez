@@ -134,13 +134,14 @@
             // Constants //
             ///////////////
             var HOURLY_SCAN_COST = 475; // Cost per hour of scan time
-            var HOURLY_PAYMENT = 25; // Payment/hr to subject for MRI and Psychophys
+            var MRI_HOURLY_PAYMENT = 50; // Payment/hr to subject for MRI
+            var PSY_HOURLY_PAYMENT = 20; // Payment/hr to subject for PsychoPhys
             var BEHAVIORAL_HOURLY_PAYMENT = 15; // Payment/hr for Behavioral tasks
             var RADIOLOGY_READ_COST = 50; // Radiology read cost
             var MRI_SUPPLIES_COST = 1; // Cost of supplies per subject
             var PSYCHOPHYS_SUPPLIES_COST = 5;
             var BEHAVIORAL_SUPPLIES_COST = 1;
-            var ROOM_COST = 100; // Room cost/hr
+            var ROOM_COST = 50; // Room cost/hr
             var CONTINGENCY_FACTOR = 1.05;
 
             /////////////////////
@@ -152,11 +153,8 @@
              * per subject.
              */
             var mriCost = function(nSubjects, hoursPerSubject) {
-                return (HOURLY_SCAN_COST * hoursPerSubject +
-                        HOURLY_PAYMENT * hoursPerSubject) * nSubjects +
-                        RADIOLOGY_READ_COST * nSubjects +
-                        MRI_SUPPLIES_COST * nSubjects;
-
+                return ((HOURLY_SCAN_COST + MRI_HOURLY_PAYMENT) * hoursPerSubject +
+                        MRI_SUPPLIES_COST) * nSubjects ;
             };
 
             /**
@@ -164,9 +162,8 @@
              * hours spent per subject.
              */
             var psychophysCost = function(nSubjects, hoursPerSubject) {
-                return nSubjects * (ROOM_COST * hoursPerSubject +
-                                    HOURLY_PAYMENT * hoursPerSubject) +
-                        PSYCHOPHYS_SUPPLIES_COST * nSubjects;
+                return ((ROOM_COST + PSY_HOURLY_PAYMENT) * hoursPerSubject +
+                        PSYCHOPHYS_SUPPLIES_COST) * nSubjects;
             };
 
             /**
@@ -182,7 +179,7 @@
              * Return the cost for a single staff member
              */
             var computeStaffCost = function(salary, duration, percentTime){
-                return salary + duration * percentTime / 12;
+                return salary * duration * percentTime / 12;
             };
 
             /////////////
