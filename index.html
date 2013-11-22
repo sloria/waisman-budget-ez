@@ -46,9 +46,21 @@
                                 <input class="form-control" name="nSubjects" min="0" type="number" ng-model="form.nSubjects" required>
                             </div>
 
+                            <p>Hours of participation/participant for...</p>
+
                             <div class="form-group">
-                                <label for="hours">Hours of participation/participant</label>
-                                <input type="number" class="form-control" ng-model="form.participantHours" required>
+                                <label for="hours">MRI Scanning (hrs)</label>
+                                <input type="number" min="0" class="form-control" ng-model="form.mriHours" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="hours">Psychophysiology (hrs)</label>
+                                <input type="number" min="0" class="form-control" ng-model="form.psychophysHours" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="hours">Behavioral Testing (hrs)</label>
+                                <input type="number" min="0" class="form-control" ng-model="form.behavioralHours" required>
                             </div>
 
                             <div class="col-md-6">
@@ -111,12 +123,18 @@
                                 </p>
                                 <p>
                                     Other Costs:
-                                    <strong>{{computeOtherCosts(form.nSubjects, form.participantHours) | currency}}</strong>
+                                    <strong>{{computeOtherCosts(form.nSubjects,
+                                                                form.mriHours,
+                                                                form.psychophysHours,
+                                                                form.behavioralHours) | currency}}</strong>
                                 </p>
                                 <p>
                                     TOTAL:
                                     <strong class="text-success">{{computeTotalStaffCosts(form.myType, additionalPersonnel) +
-                                                computeOtherCosts(form.nSubjects, form.participantHours) | currency }}</strong>
+                                                computeOtherCosts(form.nSubjects,
+                                                                form.mriHours,
+                                                                form.psychophysHours,
+                                                                form.behavioralHours)| currency }}</strong>
                                 </p>
                             </div>
                         </div>
@@ -154,7 +172,7 @@
              */
             var mriCost = function(nSubjects, hoursPerSubject) {
                 return ((HOURLY_SCAN_COST + MRI_HOURLY_PAYMENT) * hoursPerSubject +
-                        MRI_SUPPLIES_COST) * nSubjects ;
+                        RADIOLOGY_READ_COST + MRI_SUPPLIES_COST) * nSubjects ;
             };
 
             /**
@@ -201,7 +219,10 @@
                     nSubjects: 0,
                     participantHours: 0,
                     myPercentTime: 0,
-                    myType: personnelTypes[0]
+                    myType: personnelTypes[0],
+                    mriHours: 0,
+                    psychophysHours: 0,
+                    behavioralHours: 0
                 };
                 $scope.additionalPersonnel = []; // Array of {type: String, salary: Number}
                 $scope.additionalPersonnelPT = [];  // Array of Numbers, the percent times for each addtl personnel
@@ -225,7 +246,10 @@
                         nSubjects: 0,
                         participantHours: 0,
                         myPercentTime: 0,
-                        myType: personnelTypes[0]
+                        myType: personnelTypes[0],
+                        mriHours: 0,
+                        psychophysHours: 0,
+                        behavioralHours: 0
                     };
                     // Clear personnel
                     $scope.additionalPersonnel = [];
@@ -242,10 +266,10 @@
                 };
 
                 /* Compute costs of MRI, behavioral, and psychophys experiments. */
-                $scope.computeOtherCosts = function(nSubjects, hoursPerSubject) {
-                    return (mriCost(nSubjects, hoursPerSubject) +
-                            psychophysCost(nSubjects, hoursPerSubject) +
-                            behavioralCost(nSubjects, hoursPerSubject))
+                $scope.computeOtherCosts = function(nSubjects, mriHours, psychophysHours, behavioralHours) {
+                    return (mriCost(nSubjects, mriHours) +
+                            psychophysCost(nSubjects, psychophysHours) +
+                            behavioralCost(nSubjects, behavioralHours))
                             * CONTINGENCY_FACTOR;
                 };
 
